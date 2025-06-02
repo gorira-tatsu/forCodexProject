@@ -14,6 +14,9 @@ Pass `--graph` to display a simple ASCII chart of abstraction levels.
 Set your OpenAI API key in the `OPENAI_API_KEY` environment variable. The
 `openai` package must be installed for the analyzer to work.
 
+Few-shot examples used for prompting are loaded from `fewshot.json` in this
+repository. Edit this file to adjust or expand the examples.
+
 ## Running tests
 
 Unit tests verify the sentence splitting logic and do not require the `openai`
