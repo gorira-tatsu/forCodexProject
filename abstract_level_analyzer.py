@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import re
+from pathlib import Path
 
 try:
     import openai
@@ -20,13 +21,32 @@ def split_into_sentences(text: str):
 
 
 # Few-shot examples for GPT prompting
-FEW_SHOT_EXAMPLES = (
-    "文: このプレゼンテーションでは、プロジェクトの目標について説明します。\nレベル: 1\n"
-    "文: 雲は気象学において大気中の水滴や氷晶が集まったものです。\nレベル: 2\n"
-    "文: 日本経済の構造改革は複数の要因が複雑に絡み合っています。\nレベル: 3\n"
-    "文: 存在論的な議論では、存在そのものの定義が問われます。\nレベル: 4\n"
-    "文: 意識の本質は何かという問いは哲学の中でも最も抽象的な議論の一つです。\nレベル: 5\n"
-)
+def _load_few_shot_examples() -> str:
+    """Load few-shot examples from fewshot.json if available."""
+    path = Path(__file__).with_name("fewshot.json")
+    if not path.exists():
+        return (
+            "文: このプレゼンテーションでは、プロジェクトの目標について説明します。\nレベル: 1\n"
+            "文: 雲は気象学において大気中の水滴や氷晶が集まったものです。\nレベル: 2\n"
+            "文: 日本経済の構造改革は複数の要因が複雑に絡み合っています。\nレベル: 3\n"
+            "文: 存在論的な議論では、存在そのものの定義が問われます。\nレベル: 4\n"
+            "文: 意識の本質は何かという問いは哲学の中でも最も抽象的な議論の一つです。\nレベル: 5\n"
+        )
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        examples = []
+        for item in data:
+            sentence = item.get("sentence")
+            level = item.get("level")
+            if sentence is not None and level is not None:
+                examples.append(f"文: {sentence}\nレベル: {level}\n")
+        return "".join(examples)
+    except Exception:  # pragma: no cover - reading may fail
+        return ""
+
+
+FEW_SHOT_EXAMPLES = _load_few_shot_examples()
 
 
 SYSTEM_PROMPT = (
