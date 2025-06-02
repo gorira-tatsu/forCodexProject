@@ -57,18 +57,45 @@ def analyze_sentence(sentence: str) -> int:
 
 
 def analyze_text(text: str):
-    sentences = split_into_sentences(text)
+    """Analyze each sentence and track which paragraph it belongs to."""
+    paragraphs = [p.strip() for p in text.splitlines() if p.strip()]
     results = []
-    for sentence in sentences:
-        level = analyze_sentence(sentence)
-        results.append({"sentence": sentence, "level": level})
+    for p_idx, paragraph in enumerate(paragraphs, start=1):
+        sentences = split_into_sentences(paragraph)
+        for sentence in sentences:
+            level = analyze_sentence(sentence)
+            results.append({"sentence": sentence, "level": level, "paragraph": p_idx})
     return results
+
+
+def _print_ascii_graph(results):
+    """Display a simple ASCII graph of abstraction levels."""
+    levels = [r["level"] for r in results]
+    paragraphs = [r["paragraph"] for r in results]
+    max_level = max(levels) if levels else 0
+    for lvl in range(max_level, 0, -1):
+        row = f"{lvl} | "
+        for val in levels:
+            row += "#" if val >= lvl else " "
+            row += " "
+        print(row.rstrip())
+    print("    " + "-" * (2 * len(levels)))
+    print("     " + " ".join(str(i + 1) for i in range(len(levels))))
+    if len(set(paragraphs)) > 1:
+        marker = "     "
+        for i in range(len(paragraphs)):
+            if i and paragraphs[i] != paragraphs[i - 1]:
+                marker += "| "
+            else:
+                marker += "  "
+        print(marker.rstrip())
 
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze abstraction level of sentences.")
     parser.add_argument("input", help="Input text file")
     parser.add_argument("--output", help="Output JSON file", default=None)
+    parser.add_argument("--graph", action="store_true", help="Display ASCII graph")
     args = parser.parse_args()
 
     if openai is None:
@@ -92,6 +119,9 @@ def main():
 
     for item in results:
         print(f"{item['sentence']}\tレベル{item['level']}")
+
+    if args.graph:
+        _print_ascii_graph(results)
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:

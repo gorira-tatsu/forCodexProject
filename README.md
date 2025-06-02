@@ -9,6 +9,8 @@ Run the abstraction level analyzer with a text file:
 python abstract_level_analyzer.py input.txt
 ```
 
+Pass `--graph` to display a simple ASCII chart of abstraction levels.
+
 Set your OpenAI API key in the `OPENAI_API_KEY` environment variable. The
 `openai` package must be installed for the analyzer to work.
 
