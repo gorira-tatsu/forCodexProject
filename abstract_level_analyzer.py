@@ -40,15 +40,16 @@ def analyze_sentence(sentence: str) -> int:
     if openai is None:
         raise RuntimeError("openai package is not available")
     try:
+        client = openai.OpenAI()
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": FEW_SHOT_EXAMPLES + f"文: {sentence}\nレベル:"},
         ]
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=messages,
         )
-        content = response["choices"][0]["message"]["content"].strip()
+        content = response.choices[0].message.content.strip()
         level = int(re.search(r"(\d)", content).group(1))
         return level
     except Exception as exc:
@@ -73,9 +74,8 @@ def main():
     if openai is None:
         parser.error("openai package is not installed")
 
-    # Set API key from environment
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    if not openai.api_key:
+    # Check API key from environment
+    if not os.getenv("OPENAI_API_KEY"):
         parser.error("OPENAI_API_KEY environment variable is not set")
 
     # Read file
